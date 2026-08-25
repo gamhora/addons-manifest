@@ -1,38 +1,36 @@
 id: gustavohps10-redmine
 name: Redmine
-version: 1.0.0
+version: 0.1.0
 categories:
   - dataSource
 author: Gustavo Henrique
 shortDescription: Redmine data source for projects and issues
 description: Integration with Redmine to fetch projects, issues, users, and time entries
-iconUrl: https://raw.githubusercontent.com/Gustavohps10/redmine-plugin/main/src/icon.png
+iconUrl: >-
+  https://raw.githubusercontent.com/Gustavohps10/redmine-plugin/main/src/icon.png
 sourceUrl: https://github.com/Gustavohps10/redmine-plugin
 homepage: https://github.com/Gustavohps10/redmine-plugin#readme
 tags:
   - redmine
   - datasource
   - time-entries
-
-# Galeria de Screenshots para a Loja (Opcional)
 screenshots:
-  - url: https://raw.githubusercontent.com/Gustavohps10/redmine-plugin/main/src/icon.png
-    caption: Ícone e visão geral do conector Redmine
-
-# Dados de Distribuição e Download Direto (Sem necessidade de installer.yaml separado)
-downloadUrl: https://github.com/Gustavohps10/redmine-plugin/releases/download/v1.0.1/gustavohps10-redmine-1.0.0.tladdon
-requiredApiVersion: '>=1.0.0'
-releaseDate: '2026-08-24'
-changelog:
-  - Versão inicial do conector Redmine
-  - Suporte a sincronização de tarefas e apontamentos
-
-# Histórico de Versões / Pacotes
+  - url: >-
+      https://raw.githubusercontent.com/Gustavohps10/redmine-plugin/main/screenshots/overview.jpg
+    caption: Overview
+  - url: >-
+      https://raw.githubusercontent.com/Gustavohps10/redmine-plugin/main/screenshots/screenshot-1.png
+    caption: Screenshot 1
+downloadUrl: >-
+  https://github.com/Gustavohps10/redmine-plugin/releases/download/v0.1.0/gustavohps10-redmine-0.1.0.tladdon
+requiredApiVersion: '>=0.1.0'
+releaseDate: '2026-08-25'
+changelog: &ref_0
+  - Release 0.1.0
 packages:
-  - version: 1.0.0
-    requiredApiVersion: '>=1.0.0'
-    releaseDate: '2026-08-24'
-    downloadUrl: https://github.com/Gustavohps10/redmine-plugin/releases/download/v1.0.1/gustavohps10-redmine-1.0.0.tladdon
-    changelog:
-      - Versão inicial do conector Redmine
-      - Suporte a sincronização de tarefas e apontamentos
+  - version: 0.1.0
+    requiredApiVersion: '>=0.1.0'
+    releaseDate: '2026-08-25'
+    downloadUrl: >-
+      https://github.com/Gustavohps10/redmine-plugin/releases/download/v0.1.0/gustavohps10-redmine-0.1.0.tladdon
+    changelog: *ref_0
