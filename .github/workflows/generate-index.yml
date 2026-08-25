@@ -1,7 +1,9 @@
-name: Generate plugin index.json
+name: Generate Consolidated Addon Index
 
 on:
   push:
+    branches:
+      - main
     paths:
       - 'addonDatabase/**'
   workflow_dispatch:
@@ -11,25 +13,70 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
           fetch-depth: 0
 
-      - name: Generate index.json for dataSource
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install js-yaml
+
+      - name: Parse YAMLs and Generate Consolidated index.json
         run: |
-          TYPE="dataSource"
-          DIR="addonDatabase/$TYPE"
-          if [ -d "$DIR" ]; then
-            echo "Generating index.json for $TYPE"
-            cd "$DIR"
-            echo "[" > index.json
-            ls *.yaml 2>/dev/null | sed 's/^/"/; s/$/"/' | paste -sd "," - >> index.json
-            echo "]" >> index.json
-            cd ../..
-          else
-            echo "$DIR does not exist, skipping..."
-          fi
+          node -e '
+          const fs = require("fs");
+          const path = require("path");
+          const yaml = require("js-yaml");
+
+          const baseDir = "addonDatabase";
+          const categories = ["dataSource", "watcher", "calendar", "punch"];
+
+          let allAddons = [];
+
+          categories.forEach(category => {
+            const dir = path.join(baseDir, category);
+            if (!fs.existsSync(dir)) return;
+
+            const files = fs.readdirSync(dir).filter(f => f.endsWith(".yaml") || f.endsWith(".yml"));
+            const categoryAddons = [];
+
+            for (const file of files) {
+              const filePath = path.join(dir, file);
+              try {
+                const content = fs.readFileSync(filePath, "utf8");
+                const doc = yaml.load(content);
+
+                // Validação básica do manifesto
+                const id = doc.id || doc.AddonId;
+                if (!doc || !id) {
+                  console.warn(`[AVISO] Ignorando arquivo sem ID: ${filePath}`);
+                  continue;
+                }
+
+                categoryAddons.push(doc);
+                allAddons.push(doc);
+              } catch (err) {
+                console.error(`[ERRO] Falha ao ler ${filePath}:`, err.message);
+              }
+            }
+
+            // Gera index.json específico da categoria (ex: addonDatabase/dataSource/index.json)
+            const categoryIndexPath = path.join(dir, "index.json");
+            fs.writeFileSync(categoryIndexPath, JSON.stringify(categoryAddons, null, 2), "utf8");
+            console.log(`✅ Gerado: ${categoryIndexPath} com ${categoryAddons.length} addons.`);
+          });
+
+          // Gera index.json global consolidado na raiz do banco (addonDatabase/index.json)
+          const globalIndexPath = path.join(baseDir, "index.json");
+          fs.writeFileSync(globalIndexPath, JSON.stringify(allAddons, null, 2), "utf8");
+          console.log(`🚀 Gerado catálogo global: ${globalIndexPath} com ${allAddons.length} addons no total.`);
+          '
 
       - name: Commit and push if changed
         env:
@@ -38,11 +85,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
-          git add addonDatabase/dataSource/index.json
-          # só comita se houver mudanças
+          
+          git add addonDatabase/**/index.json
+          
           if ! git diff --cached --quiet; then
-            git commit -m "Update dataSource index.json"
+            git commit -m "chore(catalog): update consolidated addon index [skip ci]"
             git push origin main
           else
-            echo "No changes to commit"
+            echo "Nenhuma alteração no catálogo para comitar."
           fi
