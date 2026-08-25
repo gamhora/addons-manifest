@@ -32,7 +32,7 @@ packages:
   - version: 1.0.0
     requiredApiVersion: '>=1.0.0'
     releaseDate: '2026-08-24'
-    downloadUrl: https://github.com/Gustavohps10/redmine-plugin/releases/download/v1.0.0/gustavohps10-redmine-1.0.0.tladdon
+    downloadUrl: https://github.com/Gustavohps10/redmine-plugin/releases/download/v1.0.1/gustavohps10-redmine-1.0.0.tladdon
     changelog:
       - Versão inicial do conector Redmine
       - Suporte a sincronização de tarefas e apontamentos
