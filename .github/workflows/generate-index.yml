@@ -1,15 +1,15 @@
-name: Generate Consolidated Addon Index
+name: Generate Consolidated Addons Catalog
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'addonDatabase/**'
+      - 'addons/**'
   workflow_dispatch:
 
 jobs:
-  generate-index:
+  build-catalog:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,55 +27,44 @@ jobs:
       - name: Install dependencies
         run: npm install js-yaml
 
-      - name: Parse YAMLs and Generate Consolidated index.json
+      - name: Parse YAMLs and Generate root index.json
         run: |
           node -e '
           const fs = require("fs");
           const path = require("path");
           const yaml = require("js-yaml");
 
-          const baseDir = "addonDatabase";
-          const categories = ["dataSource", "watcher", "calendar", "punch"];
+          const addonsDir = "addons";
+          if (!fs.existsSync(addonsDir)) {
+            console.log("Pasta addons/ não encontrada, criando...");
+            fs.mkdirSync(addonsDir, { recursive: true });
+          }
 
-          let allAddons = [];
+          const files = fs.readdirSync(addonsDir).filter(f => f.endsWith(".yaml") || f.endsWith(".yml"));
+          const catalog = [];
 
-          categories.forEach(category => {
-            const dir = path.join(baseDir, category);
-            if (!fs.existsSync(dir)) return;
+          for (const file of files) {
+            const filePath = path.join(addonsDir, file);
+            try {
+              const content = fs.readFileSync(filePath, "utf8");
+              const doc = yaml.load(content);
 
-            const files = fs.readdirSync(dir).filter(f => f.endsWith(".yaml") || f.endsWith(".yml"));
-            const categoryAddons = [];
-
-            for (const file of files) {
-              const filePath = path.join(dir, file);
-              try {
-                const content = fs.readFileSync(filePath, "utf8");
-                const doc = yaml.load(content);
-
-                // Validação básica do manifesto
-                const id = doc.id || doc.AddonId;
-                if (!doc || !id) {
-                  console.warn(`[AVISO] Ignorando arquivo sem ID: ${filePath}`);
-                  continue;
-                }
-
-                categoryAddons.push(doc);
-                allAddons.push(doc);
-              } catch (err) {
-                console.error(`[ERRO] Falha ao ler ${filePath}:`, err.message);
+              const id = doc.id || doc.AddonId;
+              if (!doc || !id) {
+                console.warn(`[AVISO] Ignorando arquivo sem ID válido: ${filePath}`);
+                continue;
               }
+
+              catalog.push(doc);
+              console.log(`✓ Processado: ${id} (${file})`);
+            } catch (err) {
+              console.error(`[ERRO] Falha ao processar ${filePath}:`, err.message);
             }
+          }
 
-            // Gera index.json específico da categoria (ex: addonDatabase/dataSource/index.json)
-            const categoryIndexPath = path.join(dir, "index.json");
-            fs.writeFileSync(categoryIndexPath, JSON.stringify(categoryAddons, null, 2), "utf8");
-            console.log(`✅ Gerado: ${categoryIndexPath} com ${categoryAddons.length} addons.`);
-          });
-
-          // Gera index.json global consolidado na raiz do banco (addonDatabase/index.json)
-          const globalIndexPath = path.join(baseDir, "index.json");
-          fs.writeFileSync(globalIndexPath, JSON.stringify(allAddons, null, 2), "utf8");
-          console.log(`🚀 Gerado catálogo global: ${globalIndexPath} com ${allAddons.length} addons no total.`);
+          // Salva o catálogo consolidado direto na raiz (index.json)
+          fs.writeFileSync("index.json", JSON.stringify(catalog, null, 2), "utf8");
+          console.log(`\n🎉 Catálogo consolidado gerado com sucesso em ./index.json com ${catalog.length} addons.`);
           '
 
       - name: Commit and push if changed
@@ -86,10 +75,10 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
           
-          git add addonDatabase/**/index.json
+          git add index.json
           
           if ! git diff --cached --quiet; then
-            git commit -m "chore(catalog): update consolidated addon index [skip ci]"
+            git commit -m "chore(catalog): update index.json [skip ci]"
             git push origin main
           else
             echo "Nenhuma alteração no catálogo para comitar."
