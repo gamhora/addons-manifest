@@ -1,0 +1,8 @@
+﻿name = "addons-manifest"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+
+# Configurações do Worker
+[vars]
+GITHUB_OWNER = "gamhora"
+GITHUB_REPO = "addons-manifest"

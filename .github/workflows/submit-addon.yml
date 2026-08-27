@@ -1,0 +1,133 @@
+﻿name: Process Addon Submission & Auto PR
+
+on:
+  repository_dispatch:
+    types: [submit-addon, update-addon]
+  workflow_dispatch:
+    inputs:
+      addonId:
+        description: 'ID do Addon (ex: gustavohps10-redmine)'
+        required: true
+      manifestUrl:
+        description: 'URL raw do manifest.yaml'
+        required: true
+      version:
+        description: 'Versão do Addon (ex: v0.1.0)'
+        required: false
+        default: 'latest'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  receive-and-pr:
+    name: Download Manifest & Create PR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout addons-manifest
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install js-yaml axios
+
+      - name: Extract Submission Payload
+        id: payload
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            ADDON_ID="${{ github.event.inputs.addonId }}"
+            MANIFEST_URL="${{ github.event.inputs.manifestUrl }}"
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            ADDON_ID="${{ github.event.client_payload.addonId }}"
+            MANIFEST_URL="${{ github.event.client_payload.manifestUrl }}"
+            VERSION="${{ github.event.client_payload.version }}"
+          fi
+
+          # Higienização de segurança do ID
+          SAFE_ID=$(echo "$ADDON_ID" | sed 's/[^a-zA-Z0-9_-]//g')
+
+          echo "ADDON_ID=${SAFE_ID}" >> $GITHUB_OUTPUT
+          echo "MANIFEST_URL=${MANIFEST_URL}" >> $GITHUB_OUTPUT
+          echo "VERSION=${VERSION:-latest}" >> $GITHUB_OUTPUT
+
+      - name: Download & Validate Manifest
+        run: |
+          node -e '
+          const fs = require("fs");
+          const path = require("path");
+          const yaml = require("js-yaml");
+          const axios = require("axios");
+
+          async function run() {
+            const addonId = "${{ steps.payload.outputs.ADDON_ID }}";
+            const manifestUrl = "${{ steps.payload.outputs.MANIFEST_URL }}";
+
+            if (!addonId || !manifestUrl) {
+              throw new Error("Payload inválido: addonId e manifestUrl são obrigatórios.");
+            }
+
+            console.log(`📥 Baixando manifesto de: ${manifestUrl}`);
+            const response = await axios.get(manifestUrl, { responseType: "text" });
+            const content = response.data;
+
+            console.log("🔍 Validando sintaxe YAML...");
+            const doc = yaml.load(content);
+
+            if (!doc || typeof doc !== "object") {
+              throw new Error("O conteúdo baixado não é um objeto YAML válido.");
+            }
+
+            const docId = doc.id || doc.AddonId;
+            if (!docId || docId !== addonId) {
+              throw new Error(`Inconsistência de ID: payload=${addonId}, manifesto=${docId}`);
+            }
+
+            if (!doc.version) throw new Error("Campo obrigatório ausente: version");
+            if (!doc.name) throw new Error("Campo obrigatório ausente: name");
+            if (!doc.downloadUrl) throw new Error("Campo obrigatório ausente: downloadUrl");
+
+            const targetDir = path.resolve("addons");
+            if (!fs.existsSync(targetDir)) {
+              fs.mkdirSync(targetDir, { recursive: true });
+            }
+
+            const targetFile = path.join(targetDir, `${addonId}.yaml`);
+            fs.writeFileSync(targetFile, yaml.dump(doc, { lineWidth: -1, noRefs: true }), "utf8");
+            console.log(`✅ Manifesto gravado com sucesso em: ${targetFile}`);
+          }
+
+          run().catch((err) => {
+            console.error("❌ Erro na validação:", err.message);
+            process.exit(1);
+          });
+          '
+
+      - name: Create or Update Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: "addon-${{ steps.payload.outputs.ADDON_ID }}"
+          base: main
+          title: "📦 Update Addon: ${{ steps.payload.outputs.ADDON_ID }} (${{ steps.payload.outputs.VERSION }})"
+          commit-message: "chore(addons): update ${{ steps.payload.outputs.ADDON_ID }} to ${{ steps.payload.outputs.VERSION }}"
+          body: |
+            ### 🚀 Atualização Automática de Addon Recebida!
+
+            - **Addon ID:** `${{ steps.payload.outputs.ADDON_ID }}`
+            - **Versão:** `${{ steps.payload.outputs.VERSION }}`
+            - **URL de Origem:** ${{ steps.payload.outputs.MANIFEST_URL }}
+            - **Arquivo Modificado:** `addons/${{ steps.payload.outputs.ADDON_ID }}.yaml`
+
+            *Ao aprovar e mergear este Pull Request, o catálogo oficial (`index.json`) será reconstruído automaticamente pelo GitHub Actions.*
+          labels: |
+            addon-update
+            automated-pr
