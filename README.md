@@ -11,7 +11,7 @@ O Pandhora possui um pipeline de ingestão **100% autônomo e contínuo**, sem n
 ```text
 ┌────────────────────────────────┐       ┌────────────────────────────────┐       ┌────────────────────────────────┐
 │  📦 Repositório do Dev         │       │  ⚡ Cloudflare Ingestion Worker │       │  🏪 addons-manifest Repo       │
-│  (ex: redmine-plugin)          │       │  (gamhora-store.workers.dev)   │       │  (Este Repositório)            │
+│  (ex: redmine-plugin)          │       │  (pandhora.workers.dev)        │       │  (Este Repositório)            │
 │                                │       │                                │       │                                │
 │ • Desenvolve com @pandhora/sdk │       │ • Recebe POST automático       │       │ • Salva em addons/<id>.yaml    │
 │ • git tag v0.1.0 && push       │──────>│ • Valida e extrai o manifesto  │──────>│ • generate-index.yml compila   │
@@ -78,13 +78,13 @@ git tag v0.1.0
 git push origin main --tags
 ```
 
-O workflow de CI/CD do plugin compilará o pacote `.tladdon`, criará a Release no GitHub e notificará o endpoint oficial da Pandhora (`https://addons-manifest.gamhora-store.workers.dev`). Em menos de **30 segundos**, o plugin estará disponível na vitrine oficial do Pandhora App!
+O workflow de CI/CD do plugin compilará o pacote `.tladdon`, criará a Release no GitHub e notificará o endpoint oficial da Pandhora (`https://addons-manifest.pandhora.workers.dev/`). Em menos de **30 segundos**, o plugin estará disponível na vitrine oficial do Pandhora App!
 
 ---
 
 ## 🌐 Endpoint de Ingestão do Catálogo
 
-- **URL:** `https://addons-manifest.gamhora-store.workers.dev`
+- **URL:** `https://addons-manifest.pandhora.workers.dev/`
 - **Método:** `POST`
 - **Headers:** `Content-Type: application/json`
 - **Body:**
