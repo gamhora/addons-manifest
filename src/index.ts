@@ -1,4 +1,4 @@
-﻿export interface Env {
+export interface Env {
   GITHUB_PAT: string
   GITHUB_OWNER?: string
   GITHUB_REPO?: string
@@ -13,7 +13,7 @@ export default {
       return new Response(
         JSON.stringify({
           status: 'ok',
-          service: 'Metric Addons Marketplace Registry Worker',
+          service: 'Pandhora Addons Marketplace Registry Worker',
           timestamp: new Date().toISOString(),
         }),
         {
@@ -85,7 +85,7 @@ export default {
         )
       }
 
-      const owner = env.GITHUB_OWNER || 'gamhora'
+      const owner = env.GITHUB_OWNER || 'pandhora-community'
       const repo = env.GITHUB_REPO || 'addons-manifest'
       const filePath = `addons/${addonId}.yaml`
       const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`
@@ -95,7 +95,7 @@ export default {
       const checkFileRes = await fetch(apiUrl, {
         headers: {
           Authorization: `Bearer ${env.GITHUB_PAT}`,
-          'User-Agent': 'Metric-Addons-Registry-Worker',
+          'User-Agent': 'Pandhora-Addons-Registry-Worker',
           Accept: 'application/vnd.github.v3+json',
         },
       })
