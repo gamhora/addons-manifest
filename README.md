@@ -1,26 +1,26 @@
-# 🏪 Pandhora Addons Registry
+# 🏪 Mr. Tick Addons Registry
 
-Repositório central do catálogo oficial de Addons (Plugins) para o **Pandhora App**.
+Repositório central do catálogo oficial de Addons (Plugins) para o **Mr. Tick App**.
 
 ---
 
 ## 🚀 Arquitetura de Publicação Automática (Marketplace Pipeline)
 
-O Pandhora possui um pipeline de ingestão **100% autônomo e contínuo**, sem necessidade de forks manuais ou tokens para desenvolvedores da comunidade:
+O Mr. Tick possui um pipeline de ingestão **100% autônomo e contínuo**, sem necessidade de forks manuais ou tokens para desenvolvedores da comunidade:
 
 ```text
 ┌────────────────────────────────┐       ┌────────────────────────────────┐       ┌────────────────────────────────┐
-│  📦 Repositório do Dev         │       │  ⚡ Cloudflare Ingestion Worker │       │  🏪 addons-manifest Repo       │
-│  (ex: redmine-plugin)          │       │  (pandhora.workers.dev)        │       │  (Este Repositório)            │
+│  📦 Repositório do Dev        │       │  ⚡ Cloudflare Ingestion Worker │       │  🏪 addons-manifest Repo       │
+│  (ex: redmine-plugin)          │       │  (mistertick.workers.dev)        │       │  (Este Repositório)            │
 │                                │       │                                │       │                                │
-│ • Desenvolve com @pandhora/sdk │       │ • Recebe POST automático       │       │ • Salva em addons/<id>.yaml    │
+│ • Desenvolve com @mr-tick/sdk  │       │ • Recebe POST automático       │       │ • Salva em addons/<id>.yaml    │
 │ • git tag v0.1.0 && push       │──────>│ • Valida e extrai o manifesto  │──────>│ • generate-index.yml compila   │
 │ • CI gera release com .tladdon │       │ • Grava direto na branch main  │       │ • index.json atualizado no ar! │
 └────────────────────────────────┘       └────────────────────────────────┘       └────────────────────────────────┘
                                                                                               │
                                                                                               ▼
                                                                               ┌────────────────────────────────┐
-                                                                              │    💻 Pandhora Desktop App     │
+                                                                              │    💻 Mr. Tick Desktop App     │
                                                                               │  • Lê o index.json remoto      │
                                                                               │  • Exibe nova versão na Loja   │
                                                                               │  • Instalação com 1 clique     │
@@ -78,13 +78,13 @@ git tag v0.1.0
 git push origin main --tags
 ```
 
-O workflow de CI/CD do plugin compilará o pacote `.tladdon`, criará a Release no GitHub e notificará o endpoint oficial da Pandhora (`https://addons-manifest.pandhora.workers.dev/`). Em menos de **30 segundos**, o plugin estará disponível na vitrine oficial do Pandhora App!
+O workflow de CI/CD do plugin compilará o pacote `.tladdon`, criará a Release no GitHub e notificará o endpoint oficial do Mr. Tick (`https://addons-manifest.mistertick.workers.dev/`). Em menos de **30 segundos**, o plugin estará disponível na vitrine oficial do Mr. Tick App!
 
 ---
 
 ## 🌐 Endpoint de Ingestão do Catálogo
 
-- **URL:** `https://addons-manifest.pandhora.workers.dev/`
+- **URL:** `https://addons-manifest.mistertick.workers.dev/`
 - **Método:** `POST`
 - **Headers:** `Content-Type: application/json`
 - **Body:**

@@ -4,5 +4,5 @@ compatibility_date = "2024-09-23"
 
 # Configurações do Worker
 [vars]
-GITHUB_OWNER = "pandhora-community"
+GITHUB_OWNER = "mistertick"
 GITHUB_REPO = "addons-manifest"

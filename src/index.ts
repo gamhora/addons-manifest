@@ -42,7 +42,7 @@ export default {
       return new Response(
         JSON.stringify({
           status: 'ok',
-          service: 'Pandhora Addons Marketplace Registry Worker',
+          service: 'Mr. Tick Addons Marketplace Registry Worker',
           timestamp: new Date().toISOString(),
           version: '1.1.0-secure',
         }),
@@ -173,7 +173,7 @@ export default {
         )
       }
 
-      const owner = env.GITHUB_OWNER || 'pandhora-community'
+      const owner = env.GITHUB_OWNER || 'mistertick'
       const repo = env.GITHUB_REPO || 'addons-manifest'
       const filePath = `addons/${addonId}.yaml`
       const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`
@@ -183,7 +183,7 @@ export default {
       const checkFileRes = await fetch(apiUrl, {
         headers: {
           Authorization: `Bearer ${env.GITHUB_PAT}`,
-          'User-Agent': 'Pandhora-Addons-Registry-Worker',
+          'User-Agent': 'Mistertick-Addons-Registry-Worker',
           Accept: 'application/vnd.github.v3+json',
         },
       })
@@ -231,7 +231,7 @@ export default {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${env.GITHUB_PAT}`,
-          'User-Agent': 'Pandhora-Addons-Registry-Worker',
+          'User-Agent': 'Mistertick-Addons-Registry-Worker',
           Accept: 'application/vnd.github.v3+json',
           'Content-Type': 'application/json',
         },
